@@ -1,0 +1,315 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if action == 'Edit' %}Edit{% else %}Create{% endif %} Post - {{ society.name }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 700px; margin: 0 auto;">
+    <div class="hero" style="text-align: center;">
+        <h1 style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 8px;">
+            {% if action == 'Edit' %}
+                <span></span> Edit Post
+            {% else %}
+                <span></span> Create New Post
+            {% endif %}
+        </h1>
+        <p style="font-size: 1.1em; color: var(--muted);">
+            {% if action == 'Edit' %}
+                Update your post in <strong style="color: var(--brand-1);">{{ society.name }}</strong>
+            {% else %}
+                Share something with <strong style="color: var(--brand-1);">{{ society.name }}</strong> community
+            {% endif %}
+        </p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="message {% if message.tags == 'error' %}error{% else %}success{% endif %}" 
+                 style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.2em;">
+                    {% if message.tags == 'error' %} {% else %} {% endif %}
+                </span>
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card" style="border: none; background: transparent; padding: 0;">
+        <form method="POST" enctype="multipart/form-data" id="postForm">
+            {% csrf_token %}
+            
+            
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 1.1em;">
+                    <span></span> Post Title
+                </label>
+                {{ form.title }}
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                    <small style="color: var(--muted);">Give your post a clear and engaging title</small>
+                    <small id="titleCounter" style="color: var(--muted);">0/200</small>
+                </div>
+                {% if form.title.errors %}
+                    <div class="error" style="display: flex; align-items: center; gap: 6px; margin-top: 8px;">
+                        <span></span>
+                        {{ form.title.errors }}
+                    </div>
+                {% endif %}
+            </div>
+            
+            
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 1.1em;">
+                    <span></span> Content
+                </label>
+                {{ form.content }}
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                    <small style="color: var(--muted);">Write your post content here</small>
+                    <small id="contentCounter" style="color: var(--muted);">0 characters</small>
+                </div>
+                {% if form.content.errors %}
+                    <div class="error" style="display: flex; align-items: center; gap: 6px; margin-top: 8px;">
+                        <span></span>
+                        {{ form.content.errors }}
+                    </div>
+                {% endif %}
+            </div>
+            
+            
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 1.1em; margin-bottom: 12px;">
+                    <span></span> Image Upload
+                </label>
+                
+                
+                <div style="position: relative;">
+                    {{ form.img }}
+                    <div id="fileUploadArea" 
+                         style="border: 2px dashed var(--stroke); border-radius: 12px; padding: 40px 20px; text-align: center; cursor: pointer; transition: all 0.3s ease; background: rgba(255,255,255,0.02);">
+                        <div style="font-size: 3em; margin-bottom: 12px;"></div>
+                        <h4 style="margin: 0 0 8px; color: var(--txt);">Drop your image here or click to browse</h4>
+                        <p style="margin: 0; color: var(--muted); font-size: 0.9em;">
+                            Supports JPG, PNG, GIF • Max 5MB
+                        </p>
+                    </div>
+                    <div id="fileName" style="margin-top: 12px; padding: 12px; background: var(--panel); border-radius: 8px; display: none;">
+                        <span style="color: var(--brand-1);"></span>
+                        <span id="selectedFileName" style="margin-left: 8px; color: var(--txt);"></span>
+                        <button type="button" id="removeFile" style="margin-left: 12px; background: var(--stroke); border: none; color: var(--muted); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em;">
+                            Remove
+                        </button>
+                    </div>
+                </div>
+                
+                
+                {% if post and post.img %}
+                <div style="margin-top: 20px; padding: 16px; background: var(--panel); border-radius: 12px; border: 1px solid var(--stroke);">
+                    <p style="margin: 0 0 12px; color: var(--muted); display: flex; align-items: center; gap: 8px;">
+                        <span></span> Current Image
+                    </p>
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <img src="{{ post.img.url }}" alt="Current image" 
+                             style="max-width: 120px; border-radius: 8px; border: 2px solid var(--brand-2);">
+                        <div>
+                            <p style="margin: 0 0 8px; color: var(--txt); font-weight: 600;">{{ post.img.name|slice:"7:" }}</p>
+                            <small style="color: var(--muted);">This image will be replaced if you upload a new one</small>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if form.img.errors %}
+                    <div class="error" style="display: flex; align-items: center; gap: 6px; margin-top: 12px;">
+                        <span></span>
+                        {{ form.img.errors }}
+                    </div>
+                {% endif %}
+            </div>
+            
+            
+            <div class="actions" style="margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--stroke);">
+                <button type="submit" class="btn acc" style="padding: 12px 24px; font-size: 1.1em;">
+                    <span style="margin-right: 8px;">
+                        {% if action == 'Edit' %} {% else %} {% endif %}
+                    </span>
+                    {% if action == 'Edit' %}Update Post{% else %}Publish Post{% endif %}
+                </button>
+                <a href="{% url 'society_dashboard' society.name %}" class="btn ghost" style="padding: 12px 24px;">
+                    <span style="margin-right: 8px;">←</span>
+                    Back to Dashboard
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    
+    #id_img {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        cursor: pointer;
+    }
+    
+    
+    #fileUploadArea:hover {
+        border-color: var(--brand-2);
+        background: rgba(138,125,255,0.05);
+    }
+    
+    #fileUploadArea.dragover {
+        border-color: var(--brand-1);
+        background: rgba(106,162,255,0.1);
+    }
+    
+    
+    .counter-warning {
+        color: #ffc107 !important;
+    }
+    
+    .counter-danger {
+        color: #dc3545 !important;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        const titleInput = document.querySelector('#id_title');
+        const contentInput = document.querySelector('#id_content');
+        const titleCounter = document.querySelector('#titleCounter');
+        const contentCounter = document.querySelector('#contentCounter');
+        
+        
+        const fileInput = document.querySelector('#id_img');
+        const fileUploadArea = document.querySelector('#fileUploadArea');
+        const fileName = document.querySelector('#fileName');
+        const selectedFileName = document.querySelector('#selectedFileName');
+        const removeFile = document.querySelector('#removeFile');
+        
+        
+        if (titleInput && titleCounter) {
+            titleInput.addEventListener('input', function() {
+                const length = this.value.length;
+                titleCounter.textContent = `${length}/200`;
+                
+                if (length > 180) {
+                    titleCounter.className = 'counter-warning';
+                } else if (length > 200) {
+                    titleCounter.className = 'counter-danger';
+                } else {
+                    titleCounter.className = '';
+                }
+            });
+            
+            
+            titleInput.dispatchEvent(new Event('input'));
+        }
+        
+        
+        if (contentInput && contentCounter) {
+            contentInput.addEventListener('input', function() {
+                const length = this.value.length;
+                contentCounter.textContent = `${length} characters`;
+                
+                if (length > 1000) {
+                    contentCounter.className = 'counter-warning';
+                } else {
+                    contentCounter.className = '';
+                }
+            });
+            
+            
+            contentInput.dispatchEvent(new Event('input'));
+        }
+        
+        
+        if (fileInput && fileUploadArea) {
+            
+            fileUploadArea.addEventListener('click', function() {
+                fileInput.click();
+            });
+            
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                fileUploadArea.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                fileUploadArea.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                fileUploadArea.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight() {
+                fileUploadArea.classList.add('dragover');
+            }
+            
+            function unhighlight() {
+                fileUploadArea.classList.remove('dragover');
+            }
+            
+            
+            fileUploadArea.addEventListener('drop', handleDrop, false);
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                fileInput.files = files;
+                handleFiles(files);
+            }
+            
+            
+            fileInput.addEventListener('change', function() {
+                handleFiles(this.files);
+            });
+            
+            function handleFiles(files) {
+                if (files.length > 0) {
+                    const file = files[0];
+                    selectedFileName.textContent = file.name;
+                    fileName.style.display = 'block';
+                    fileUploadArea.style.display = 'none';
+                }
+            }
+            
+        
+            removeFile.addEventListener('click', function() {
+                fileInput.value = '';
+                fileName.style.display = 'none';
+                fileUploadArea.style.display = 'block';
+            });
+        }
+        
+        
+        const form = document.querySelector('#postForm');
+        form.addEventListener('submit', function(e) {
+            const title = titleInput.value.trim();
+            const content = contentInput.value.trim();
+            
+            if (!title) {
+                e.preventDefault();
+                alert('Please enter a title for your post.');
+                titleInput.focus();
+                return;
+            }
+            
+            if (!content) {
+                e.preventDefault();
+                alert('Please enter content for your post.');
+                contentInput.focus();
+                return;
+            }
+        });
+    });
+</script>
+{% endblock %}

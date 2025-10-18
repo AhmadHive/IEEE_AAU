@@ -1,0 +1,488 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ society.name }} - IEEE AAU{% endblock %}
+
+{% block content %}
+<header class="society-hero">
+    <div class="society-hero-content">
+        <div class="society-logo-large">
+            {% if society.img %}
+                <img src="{{ society.img.url }}" alt="{{ society.name }} Logo">
+            {% else %}
+                <div class="society-logo-placeholder">
+                    {{ society.initials }}
+                </div>
+            {% endif %}
+        </div>
+        <h1>{{ society.name }}</h1>
+        <p class="society-description">{{ society.description }}</p>
+        <div class="society-actions">
+            {% if society.join_link %}
+                <a href="{{ society.join_link }}" target="_blank" class="btn acc">
+                    <i class="fas fa-user-plus"></i> Join Society
+                </a>
+            {% endif %}
+            {% if user.is_authenticated and user.is_active and user.society == society %}
+                <a href="{% url 'society_dashboard' society.name %}" class="btn">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+            {% endif %}
+            <a href="{% url 'home' %}" class="btn">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+    {% if officers %}
+    <section class="society-officers">
+        <div class="section-header">
+            <h2>Society Officers</h2>
+            <p>Meet the team leading {{ society.name }}</p>
+        </div>
+        <div class="officers-grid">
+            {% for officer in officers %}
+            <div class="officer-card">
+                <div class="officer-img-container">
+                    <div class="officer-img">
+                        {% if officer.img %}
+                            <img src="{{ officer.img.url }}" alt="{{ officer.officer_name }}" loading="lazy">
+                        {% else %}
+                            <div class="officer-placeholder">
+                                {{ officer.officer_name|first }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="officer-info">
+                    <h4>{{ officer.officer_name }}</h4>
+                    {% if officer.position %}
+                        <p class="position">{{ officer.position }}</p>
+                    {% endif %}
+                    {% if officer.email %}
+                        <a href="mailto:{{ officer.email }}" class="officer-email">
+                            <i class="fas fa-envelope"></i> {{ officer.email }}
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="society-posts">
+        <div class="section-header">
+            <h2>Latest Posts</h2>
+            <p>Recent updates from {{ society.name }}</p>
+        </div>
+        
+        {% if posts %}
+        <div class="posts-grid">
+            {% for post in posts %}
+            <div class="post-card">
+                {% if post.img %}
+                <div class="post-image">
+                    <img src="{{ post.img.url }}" alt="{{ post.title }}" loading="lazy">
+                </div>
+                {% endif %}
+                <div class="post-content">
+                    <div class="post-meta">
+                        <span class="tag">{{ society.initials }}</span>
+                        <div class="post-date">
+                            <i class="far fa-calendar"></i> {{ post.Posting_Date|date:"M d, Y" }}
+                            {% now "Y-m-d" as current_date %}
+                            {% with post_date=post.Posting_Date|date:"Y-m-d" %}
+                                {% if post_date >= current_date|add:"-30 days" %}
+                                <span class="new-badge">NEW</span>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                    <h3>{{ post.title }}</h3>
+                    <p class="post-excerpt">{{ post.content|truncatewords:30 }}</p>
+                    <div class="post-footer">
+                        <span class="society-name">
+                            <i class="fas fa-users"></i> {{ society.name }}
+                        </span>
+                        <a href="{% url 'post_detail' post.id %}" class="btn ghost">
+                            Read More <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="far fa-newspaper"></i>
+            </div>
+            <h3>No Posts Yet</h3>
+            <p>No posts have been published in this society yet. Check back later for updates!</p>
+        </div>
+        {% endif %}
+    </section>
+</div>
+
+<style>
+    .society-hero {
+        background: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
+        color: white;
+        padding: 3.75rem 1.25rem;
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .society-hero-content {
+        max-width: 50rem;
+        margin: 0 auto;
+    }
+
+    .society-logo-large {
+        width: 7.5rem;
+        height: 7.5rem;
+        margin: 0 auto 1.25rem;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 0.25rem solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 0.5rem 1.25rem rgba(0,0,0,0.2);
+    }
+
+    .society-logo-large img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .society-logo-placeholder {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1));
+        backdrop-filter: blur(0.625rem);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 2rem;
+    }
+
+    .society-hero h1 {
+        font-size: clamp(1.8rem, 5vw, 2.5rem);
+        margin-bottom: 0.9375rem;
+        font-weight: 700;
+    }
+
+    .society-description {
+        font-size: clamp(1rem, 3vw, 1.2rem);
+        line-height: 1.6;
+        margin-bottom: 1.5625rem;
+        opacity: 0.95;
+    }
+
+    .society-actions {
+        display: flex;
+        gap: 0.9375rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .society-actions .btn {
+        padding: 0.75rem 1.875rem;
+        font-weight: 600;
+        border-radius: 1.875rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    
+    .society-officers {
+        margin-bottom: 3.75rem;
+    }
+
+
+    .officers-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(12.5rem, 100%), 1fr));
+        gap: 1.5625rem;
+        max-width: 50rem;
+        margin: 0 auto;
+    }
+
+    .officer-card {
+        background: var(--brand-1);
+        border-radius: 0.75rem;
+        overflow: hidden;
+        box-shadow: 0 0.3125rem 0.9375rem rgba(0,0,0,0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        text-align: center;
+        padding: 1.5625rem 0.9375rem;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .officer-card:hover {
+        transform: translateY(-0.3125rem);
+        box-shadow: 0 0.625rem 1.5625rem rgba(0,0,0,0.15);
+    }
+
+    .officer-img-container {
+        width: 9rem;
+        height: 9rem;
+        margin: 0 auto 1.25rem;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 0.1875rem solid var(--brand-2);
+        box-shadow: 0 0.3125rem 0.9375rem rgba(0,0,0,0.1);
+        position: relative;
+    }
+
+    .officer-img {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        border-radius: 50%;
+    }
+
+    .officer-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center top;
+        filter: brightness(1.05) contrast(1.1);
+        transition: transform 0.5s ease;
+    }
+
+    .officer-card:hover .officer-img img {
+        transform: scale(1.05);
+    }
+
+    .officer-card .officer-placeholder {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 2.5rem;
+    }
+
+    .officer-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .officer-card h4 {
+        margin: 0.9375rem 0 0.3125rem;
+        font-size: 1.2rem;
+        line-height: 1.3;
+    }
+
+    .officer-card .position {
+        color: var(--brand-2);
+        font-weight: 600;
+        margin: 0 0 0.625rem;
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
+
+    .officer-email {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.85rem;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: color 0.3s ease;
+        word-break: break-word;
+    }
+
+    .officer-email:hover {
+        color: white;
+    }
+
+    
+    .society-posts {
+        margin-bottom: 3.75rem;
+    }
+
+    .posts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(20rem, 100%), 1fr));
+        gap: 1.5625rem;
+    }
+
+    .post-card {
+        background: white;
+        border-radius: 0.75rem;
+        overflow: hidden;
+        box-shadow: 0 0.3125rem 0.9375rem rgba(0,0,0,0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .post-card:hover {
+        transform: translateY(-0.3125rem);
+        box-shadow: 0 0.625rem 1.5625rem rgba(0,0,0,0.15);
+    }
+
+    .post-card:hover .post-image img {
+        transform: scale(1.05);
+    }
+
+    .post-image {
+        height: 11.25rem;
+        overflow: hidden;
+    }
+
+    .post-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .post-content {
+        padding: 1.25rem;
+        color: #00629B;
+    }
+
+    .post-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .post-date {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+    }
+
+    .post-card h3 {
+        margin: 0 0 0.75rem;
+        font-size: 1.3rem;
+        color: #333;
+        line-height: 1.4;
+    }
+
+    .post-excerpt {
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 1.25rem;
+    }
+
+    .post-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .society-name {
+        font-size: 0.85rem;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .post-footer .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 1.25rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3125rem;
+    }
+
+    
+    @media (max-width: 768px) {
+        .society-hero {
+            padding: 2.5rem 1rem;
+        }
+
+        .society-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .society-actions .btn {
+            width: 100%;
+            max-width: 20rem;
+            justify-content: center;
+        }
+
+        .officers-grid {
+            grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr));
+            gap: 1rem;
+        }
+
+        .officer-img-container {
+            width: 7rem;
+            height: 7rem;
+        }
+
+        .posts-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .society-logo-large {
+            width: 6rem;
+            height: 6rem;
+        }
+
+        .officer-img-container {
+            width: 6rem;
+            height: 6rem;
+        }
+
+        .post-footer {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .post-footer .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        const cards = document.querySelectorAll('.officer-card, .post-card');
+        
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-0.3125rem)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    });
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

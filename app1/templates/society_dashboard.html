@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ society.name }} - Dashboard{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>{{ society.name }} Dashboard</h1>
+    <p>Welcome, {{ user.first_name }}! Manage your society's content and posts.</p>
+    <div class="actions">
+        <a href="{% url 'create_post' society.name %}" class="btn acc">Create New Post</a>
+    </div>
+</div>
+
+<div class="grid">
+    <div class="card">
+        <h3> Posts Management</h3>
+        <p>Create, edit, and manage your society's posts and announcements.</p>
+        <div class="footer">
+            <a href="{% url 'create_post' society.name %}" class="btn acc">Create Post</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Member Info</h3>
+        <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Major:</strong> {{ user.major }}</p>
+    </div>
+
+    <div class="card">
+        <h3> Society Info</h3>
+        <p><strong>Description:</strong> {{ society.description }}</p>
+        <p><strong>Initials:</strong> {{ society.initials }}</p>
+        {% if society.join_link %}
+            <div class="footer">
+                <a href="{{ society.join_link }}" target="_blank" class="btn ghost">Official Link</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div style="margin-top: 32px;">
+    <h2 style="margin-bottom: 20px;">Your Posts</h2>
+    <div class="grid">
+        {% for post in posts %}
+        <div class="card">
+            <h3>{{ post.title }}</h3>
+            <p>{{ post.content|truncatewords:20 }}</p>
+            {% if post.img %}
+                <img src="{{ post.img.url }}" alt="{{ post.title }}" style="width:100%;border-radius:8px;margin:10px 0;max-height:120px;object-fit:cover">
+            {% endif %}
+            <div class="footer">
+                <div class="actions">
+                    <a href="{% url 'edit_post' society.name post.id %}" class="btn success">Edit</a>
+                    <a href="{% url 'delete_post' society.name post.id %}" class="btn danger">Delete</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="card">
+            <h3>No Posts Yet</h3>
+            <p>You haven't created any posts yet. <a href="{% url 'create_post' society.name %}" style="color: var(--brand-1);">Create your first post!</a></p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

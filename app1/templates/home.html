@@ -1,0 +1,824 @@
+{% extends 'base.html' %}
+
+{% block title %}IEEE Societies - Home{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>IEEE AAU Societies</h1>
+    <p>Explore the different IEEE societies and join your favorite community at Amman Arab University</p>
+</div>
+
+<section class="news-section">
+    <div class="section-header">
+        <h2>Branch News</h2>
+        <p>Latest updates and announcements from IEEE AAU</p>
+    </div>
+
+    <div class="news-container">
+        {% if Post_In_Home %}
+        <button class="news-arrow news-arrow-left">‹</button>
+        
+        <div class="news-scroll-container">
+            <div class="news-track">
+                {% for post in Post_In_Home %}
+                <div class="news-card">
+                    <div class="post-card">
+                        {% if post.img %}
+                        <div class="post-image">
+                            <img src="{{ post.img.url }}" alt="{{ post.title }}">
+                        </div>
+                        {% endif %}
+                        
+                        <div class="post-content">
+                            <div class="post-header">
+                                <span class="tag">{{ post.socity.name }}</span>
+                                <h3>{{ post.title }}</h3>
+                                <p class="post-meta">
+                                    <i class="far fa-calendar"></i> {{ post.Posting_Date|date:"M d, Y" }}
+                                    <span class="new-badge">New</span>
+                                </p>
+                            </div>
+                            
+                            <p class="post-excerpt">{{ post.content|truncatewords:15 }}</p>
+                            
+                            <div class="footer">
+                                <a href="{% url 'post_detail' post.id %}" class="btn ghost">Read More</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <button class="news-arrow news-arrow-right">›</button>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="far fa-newspaper"></i>
+            </div>
+            <h3>No Recent News</h3>
+            <p>There are no recent posts to display.</p>
+            <p class="note">Only posts from the last 30 days are shown here.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<section class="officers-section">
+    <div class="section-header">
+        <h2>Branch Leadership Team</h2>
+        <p>Meet the dedicated team leading our IEEE student branch</p>
+    </div>
+
+    <div class="officers-grid">
+        {% for officer in branch_officer %}
+        <div class="card officer-card">
+            <div class="officer-img">
+                {% if officer.img %}
+                    <img src="{{ officer.img.url }}" alt="{{ officer.Name }}">
+                {% else %}
+                    <div class="officer-placeholder">
+                        {{ officer.Name|first }}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <h3>{{ officer.Name }}</h3>
+            <p class="position">{{ officer.Position }}</p>
+            
+            <div class="social-links">
+                {% if officer.Linkedin %}
+                <a href="{{ officer.Linkedin }}" target='_blank' class="btn social-btn">
+                    <i class="fab fa-linkedin-in"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state full-width">
+            <div class="empty-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3>No Officers Added Yet</h3>
+            <p>Number of officers found: {{ branch_officer|length }}</p>
+            <p>Branch officers information will be available soon.</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+{% if context %}
+<section class="societies-section">
+    <div class="section-header">
+        <h2>Our Societies</h2>
+        <p>Discover and join various IEEE societies and communities</p>
+    </div>
+
+    <div class="societies-container">
+        <div class="societies-grid">
+            {% for society in context %}
+            <div class="society-item">
+                <a href="{% url 'socity_page' society.name %}" class="society-card-link">
+                    <div class="society-card-wrapper">
+                        {% if society.header %}
+                        <div class="society-card-header">
+                            <img src="{{ society.header.url }}" alt="{{ society.name }} header">
+                        </div>
+                        {% endif %}
+                        
+                        <div class="society-card-body">
+                            <div class="society-card-logo-main">
+                                {% if society.img %}
+                                    <img src="{{ society.img.url }}" alt="{{ society.name }}">
+                                {% else %}
+                                    <div class="society-card-placeholder">
+                                        {{ society.initials }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="society-card-content">
+                                <div class="society-card-title-section">
+                                    <h3 class="society-card-name">{{ society.name }}</h3>
+                                    <span class="society-card-tag">{{ society.initials }}</span>
+                                </div>
+                                
+                                <p class="society-card-description">{{ society.description|truncatewords:12 }}</p>
+                                
+                                <div class="society-card-stats">
+                                    <div class="society-card-stat">
+                                        <div class="society-card-stat-number">{{ society.post_set.count }}</div>
+                                        <div class="society-card-stat-label">Posts</div>
+                                    </div>
+                                </div>
+
+                                <div class="society-card-actions">
+                                    {% if society.join_link %}
+                                        <a href="{{ society.join_link }}" target="_blank" class="btn acc">Join Now</a>
+                                    {% endif %}
+                                    {% if user.is_authenticated and user.is_active and user.socity == society %}
+                                        <a href="{% url 'society_dashboard' society.name %}" class="btn">Dashboard</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<style>
+    /* Fix margins and spacing */
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Fix news section - make it smaller */
+    .news-section {
+        margin: 2rem 0 !important;
+        padding: 0 !important;
+    }
+
+    .news-container {
+        position: relative;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+
+    .news-scroll-container {
+        overflow: hidden;
+        position: relative;
+        margin: 0 2rem;
+    }
+
+    .news-track {
+        display: flex;
+        gap: 1rem;
+        transition: transform 0.3s ease;
+        padding: 0.5rem 0;
+    }
+
+    .news-card {
+        flex-shrink: 0;
+        width: 260px !important;
+        min-width: 260px !important;
+        max-width: 260px !important;
+    }
+
+    .post-card {
+        background: var(--panel);
+        border: 1px solid var(--stroke);
+        border-radius: 12px;
+        overflow: hidden;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        min-height: 380px;
+    }
+
+    .post-image {
+        height: 160px;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .post-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .post-content {
+        padding: 1rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .post-header {
+        margin-bottom: 0;
+    }
+
+    .tag {
+        background: var(--brand-1);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 0.5rem;
+    }
+
+    .post-header h3 {
+        margin: 0 0 0.5rem;
+        font-size: 1.1rem;
+        color: var(--brand-1);
+        line-height: 1.3;
+        min-height: 2.6em;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .post-meta {
+        color: var(--muted);
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .new-badge {
+        background: #28a745;
+        color: white;
+        padding: 0.2rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .post-excerpt {
+        color: var(--muted);
+        line-height: 1.4;
+        font-size: 0.9rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        flex: 1;
+        margin: 0;
+    }
+
+    .footer {
+        margin-top: auto;
+        padding-top: 0.5rem;
+    }
+
+    .footer .btn.ghost {
+        background: transparent;
+        color: var(--brand-1);
+        border: 1px solid var(--brand-1);
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        display: inline-block;
+        text-align: center;
+    }
+
+    .footer .btn.ghost:hover {
+        background: var(--brand-1);
+        color: white;
+    }
+
+    .news-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--brand-1);
+        color: white;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        z-index: 10;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .news-arrow-left {
+        left: -10px;
+    }
+
+    .news-arrow-right {
+        right: -10px;
+    }
+
+    .news-arrow:hover {
+        background: var(--brand-2);
+        transform: translateY(-50%) scale(1.1);
+    }
+
+    
+    .officers-section,
+    .societies-section {
+        margin: 3rem 0 !important;
+        padding: 0 !important;
+        width: 100%;
+        clear: both;
+    }
+
+    .section-header {
+        text-align: center;
+        margin-bottom: 2rem !important;
+        padding: 0 1rem;
+    }
+
+    .section-header h2 {
+        font-size: clamp(1.5rem, 4vw, 2.2rem);
+        color: var(--brand-1);
+        position: relative;
+        display: inline-block;
+        padding-bottom: 0.5rem;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .section-header h2::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 5rem;
+        height: 0.25rem;
+        background: var(--brand-2);
+        border-radius: 0.125rem;
+    }
+
+    .section-header p {
+        color: var(--muted);
+        font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+        max-width: 37.5rem;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    .societies-section {
+        margin: 3rem 0 !important;
+        padding: 0 1rem !important;
+    }
+
+    .societies-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0;
+    }
+
+    .societies-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(30%, 1fr));
+        gap: 2rem;
+        margin: 0 !important;
+        padding: 0 !important;
+        align-items: stretch;
+    }
+
+    .society-item {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .society-card-link {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        height: 100%;
+    }
+
+    .society-card-wrapper {
+        background: var(--panel);
+        border: 1px solid var(--stroke);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 100%; 
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    .society-card-wrapper:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        border-color: var(--brand-1);
+    }
+
+    .society-card-header {
+        height: 120px;
+        overflow: hidden;
+        flex-shrink: 0;
+        position: relative;
+    }
+
+    .society-card-header img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .society-card-body {
+        padding: 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .society-card-logo-main {
+        position: absolute;
+        top: -35px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 25%;
+        height: 23.5%;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 3px solid white;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        background: white;
+        z-index: 2;
+    }
+
+    .society-card-logo-main img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .society-card-placeholder {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+
+    .society-card-content {
+        padding: 3rem 1.5rem 1.5rem; 
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+        height: 100%;
+    }
+
+    .society-card-title-section {
+        margin-bottom: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    .society-card-name {
+        margin: 0 0 0.5rem !important;
+        font-size: 1.2rem;
+        color: var(--brand-1);
+        font-weight: 700;
+        line-height: 1.3;
+        min-height: 2.8em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .society-card-tag {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        background: var(--brand-1);
+        color: white;
+        font-weight: 600;
+    }
+
+    .society-card-description {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.9rem;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        flex: 1;
+        min-height: 4.2em;
+    }
+
+    .society-card-stats {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        padding: 0.8rem;
+        background: #f8f9fa;
+        border-radius: 10px;
+        margin: 0.5rem 0;
+        flex-shrink: 0;
+    }
+
+    .society-card-stat {
+        text-align: center;
+    }
+
+    .society-card-stat-number {
+        font-weight: bold;
+        color: var(--brand-2);
+        font-size: 1.2rem;
+    }
+
+    .society-card-stat-label {
+        font-size: 0.75rem;
+        color: var(--muted);
+    }
+
+    /* Make buttons VERY small like home button */
+    .society-card-actions {
+        display: flex !important;
+        gap: 0.4rem;
+        margin-top: auto;
+        padding-top: 0.8rem;
+        min-height: 30px;
+        visibility: visible !important;
+        opacity: 1 !important;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .society-card-actions .btn {
+        flex: 0 1 auto;
+        text-align: center;
+        padding: 1rem 1.25rem;
+        border-radius: 4px;
+        font-weight: 600;
+        text-decoration: none;
+        font-size: 0.85rem;
+        border: none;
+        cursor: pointer;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        min-height: 24px;
+        background: var(--brand-1);
+        color: white;
+        transition: all 0.2s ease;
+        line-height: 1;
+    }
+
+    .society-card-actions .btn.acc {
+        background: var(--brand-1);
+    }
+
+    .society-card-actions .btn:not(.acc) {
+        background: var(--brand-2);
+    }
+
+    .society-card-actions .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    /* Fix officers images */
+    .officers-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+
+    .officer-card {
+        text-align: center;
+        padding: 1.5rem;
+        background: var(--panel);
+        border-radius: 12px;
+        border: 1px solid var(--stroke);
+        transition: all 0.3s ease;
+    }
+
+    .officer-img {
+        width: 90px;
+        height: 90px;
+        margin: 0 auto 1rem;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 3px solid var(--brand-2);
+    }
+
+    .officer-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .officer-card h3 {
+        margin: 0 0 0.5rem;
+        font-size: 1.2rem;
+        color: var(--brand-1);
+    }
+
+    .position {
+        color: var(--brand-2);
+        font-weight: 600;
+        margin: 0 0 1rem;
+        font-size: 0.9rem;
+    }
+
+    .social-links {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .social-btn {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: var(--brand-1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        text-decoration: none;
+        font-size: 0.8rem;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .news-card {
+            min-width: 280px;
+        }
+        
+        .societies-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        .society-card-wrapper {
+            min-height: 420px;
+        }
+        
+        .society-card-content {
+            padding: 2.5rem 1.25rem 1.25rem;
+        }
+        
+        .society-card-actions {
+            flex-direction: row;
+            gap: 0.3rem;
+        }
+        
+        .society-card-actions .btn {
+            padding: 0.2rem 0.5rem;
+            font-size: 0.6rem;
+            min-height: 22px;
+        }
+        
+        .officers-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .news-container {
+            padding: 0 0.5rem;
+        }
+        
+        .news-track {
+            gap: 0.8rem;
+        }
+        
+        .news-card {
+            min-width: 260px;
+        }
+        
+        .post-card {
+            min-height: 360px;
+        }
+        
+        .society-card-actions {
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        
+        .society-card-actions .btn {
+            width: 100%;
+            padding: 0.25rem 0.5rem;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // News slider
+        const track = document.querySelector('.news-track');
+        const cards = document.querySelectorAll('.news-card');
+        const leftArrow = document.querySelector('.news-arrow-left');
+        const rightArrow = document.querySelector('.news-arrow-right');
+        
+        if (track && cards.length > 0) {
+            const cardWidth = cards[0].offsetWidth + 16; 
+            let currentPosition = 0;
+            const maxPosition = Math.max(0, (cards.length - 2) * cardWidth);
+            
+            function updateArrows() {
+                if (leftArrow) {
+                    leftArrow.style.opacity = currentPosition === 0 ? '0.5' : '1';
+                    leftArrow.style.cursor = currentPosition === 0 ? 'not-allowed' : 'pointer';
+                }
+                if (rightArrow) {
+                    rightArrow.style.opacity = currentPosition >= maxPosition ? '0.5' : '1';
+                    rightArrow.style.cursor = currentPosition >= maxPosition ? 'not-allowed' : 'pointer';
+                }
+            }
+            
+            if (leftArrow) {
+                leftArrow.addEventListener('click', function() {
+                    if (currentPosition > 0) {
+                        currentPosition = Math.max(0, currentPosition - cardWidth * 2);
+                        track.style.transform = `translateX(-${currentPosition}px)`;
+                        updateArrows();
+                    }
+                });
+            }
+            
+            if (rightArrow) {
+                rightArrow.addEventListener('click', function() {
+                    if (currentPosition < maxPosition) {
+                        currentPosition = Math.min(maxPosition, currentPosition + cardWidth * 2);
+                        track.style.transform = `translateX(-${currentPosition}px)`;
+                        updateArrows();
+                    }
+                });
+            }
+            
+            updateArrows();
+            
+            if (cards.length <= 2) {
+                if (leftArrow) leftArrow.style.display = 'none';
+                if (rightArrow) rightArrow.style.display = 'none';
+            }
+        } else {
+            if (leftArrow) leftArrow.style.display = 'none';
+            if (rightArrow) rightArrow.style.display = 'none';
+        }
+
+        // Debug buttons visibility
+        console.log('Join Now buttons count:', document.querySelectorAll('.btn.acc').length);
+        console.log('Dashboard buttons count:', document.querySelectorAll('.society-card-actions .btn:not(.acc)').length);
+    });
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}
